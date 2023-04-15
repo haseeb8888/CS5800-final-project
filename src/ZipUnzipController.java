@@ -47,6 +47,7 @@ public class ZipUnzipController {
       StringBuilder sb = new StringBuilder();
       while (in.hasNext()) {
         sb.append(in.nextLine());
+        sb.append(System.lineSeparator());
       }
       characterContent = sb.toString().toCharArray();
     } catch (FileNotFoundException ex) {

@@ -242,6 +242,9 @@ public class ZipUnzipUtil {
         }
       }
     } catch (Exception e) {
+      System.out.println("Unexpected error: " + e.getMessage());
+      return;
+    }
       if (builder.length() > 0) {
         String content = builder.toString();
         StringBuilder uncompressed = new StringBuilder();
@@ -266,7 +269,7 @@ public class ZipUnzipUtil {
       } else {
         System.out.println("File is empty");
       }
-    }
+
   }
 
 
