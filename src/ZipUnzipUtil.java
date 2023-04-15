@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 public class ZipUnzipUtil {
@@ -11,7 +12,7 @@ public class ZipUnzipUtil {
   int[] frequency;
   char[][] binaryCodes;
   HuffmanCodec tree;
-  ZipUnzipStats forest;
+  ZipUnzipStats huffmanTrees;
   int n, lastTree, lastNode;
 
   // huffman empty constructor
@@ -19,163 +20,207 @@ public class ZipUnzipUtil {
   }
 
   // create the forest
-  private void initialize(int min0, int min1) {
-    tree.nodes[forest.huffmanTreeNodes[min0].character].parent = tree.nodes[forest.huffmanTreeNodes[min1].character].parent = lastNode;
-    forest.huffmanTreeNodes[min1].frequency += forest.huffmanTreeNodes[min0].frequency;
-    tree.nodes[lastNode].left = forest.huffmanTreeNodes[min0].character;
-    tree.nodes[lastNode].right = forest.huffmanTreeNodes[min1].character;
-    forest.huffmanTreeNodes[min1].character = lastNode;
-    forest.huffmanTreeNodes[min0] = forest.huffmanTreeNodes[lastTree];
-    if (lastNode != 2 * (n - 1)) {
-      tree.nodes[lastNode].parent = lastNode + 1;
+  private void createNewNodeAndUpdateHuffmanTree(int index1, int index2) {
+    int newCharacter = lastNode;
+    int leftChild = huffmanTrees.huffmanTreeNodes[index1].character;
+    int rightChild = huffmanTrees.huffmanTreeNodes[index2].character;
+    int newFrequency = huffmanTrees.huffmanTreeNodes[index1].freq + huffmanTrees.huffmanTreeNodes[index2].freq;
+
+    // Set the parents of the two nodes to the new node.
+    setParent(leftChild, newCharacter);
+    setParent(rightChild, newCharacter);
+
+    // Set the left and right children of the new node.
+    tree.nodes[newCharacter].left = leftChild;
+    tree.nodes[newCharacter].right = rightChild;
+
+    // Update the character and frequency of the second node.
+    huffmanTrees.huffmanTreeNodes[index2].character = newCharacter;
+    huffmanTrees.huffmanTreeNodes[index2].freq = newFrequency;
+
+    // Remove the first node from the huffman tree list.
+    huffmanTrees.huffmanTreeNodes[index1] = huffmanTrees.huffmanTreeNodes[lastTree];
+
+    // If the new node is not the last node in the huffman tree list,
+    // set its parent to the next node.
+    if (newCharacter != 2 * (n - 1)) {
+      tree.nodes[newCharacter].parent = newCharacter + 1;
     }
+
+    // Increment the last node index.
     lastNode++;
   }
 
+  private void setParent(int child, int parent) {
+    tree.nodes[child].parent = parent;
+  }
+
+
+
   // find two minimum nodes
   private void huffman() {
-    int[] twoMins = new int[2];
-    findMinimumAmongTwoNodes(twoMins);
-    initialize(twoMins[0], twoMins[1]);
+    int[] mindiff = new int[2];
+    findIndicesOfSmallestAndSecondSmallestFrequencies(mindiff);
+    createNewNodeAndUpdateHuffmanTree(mindiff[0], mindiff[1]);
   }
 
   // find the minimum among two nodes
-  private void findMinimumAmongTwoNodes(int[] smallest) {
-    if (forest.huffmanTreeNodes[0].frequency >= forest.huffmanTreeNodes[1].frequency) {
-      smallest[0] = 1;
-      smallest[1] = 0;
+  private void findIndicesOfSmallestAndSecondSmallestFrequencies(int[] res) {
+    int smallestIndex, secondSmallestIndex;
+
+    // Initialize smallest and second smallest indices
+    if (huffmanTrees.huffmanTreeNodes[0].freq <= huffmanTrees.huffmanTreeNodes[1].freq) {
+      smallestIndex = 0;
+      secondSmallestIndex = 1;
     } else {
-      smallest[0] = 0;
-      smallest[1] = 1;
+      smallestIndex = 1;
+      secondSmallestIndex = 0;
     }
+
+    // Update smallest and second smallest indices
     for (int i = 2; i <= lastTree; i++) {
-      if (forest.huffmanTreeNodes[smallest[0]].frequency > forest.huffmanTreeNodes[i].frequency) {
-        smallest[1] = smallest[0];
-        smallest[0] = i;
-      } else if (forest.huffmanTreeNodes[smallest[1]].frequency > forest.huffmanTreeNodes[i].frequency) {
-        smallest[1] = i;
+      if (huffmanTrees.huffmanTreeNodes[i].freq < huffmanTrees.huffmanTreeNodes[smallestIndex].freq) {
+        secondSmallestIndex = smallestIndex;
+        smallestIndex = i;
+      } else if (huffmanTrees.huffmanTreeNodes[i].freq < huffmanTrees.huffmanTreeNodes[secondSmallestIndex].freq) {
+        secondSmallestIndex = i;
       }
     }
+
+    // Store the indices in the result array
+    res[0] = smallestIndex;
+    res[1] = secondSmallestIndex;
   }
 
+
   // generate the binary codes for the input text file.
-  char[] generateCode(char c) {
-    for (int i = 0; i < letters.length; i++) {
-      if (letters[i] == c) {
-        return binaryCodes[i];
-      }
+  char[] generateBinaryCode(char character) {
+    int characterIndex = findCharacterIndex(character);
+    if (characterIndex != -1) {
+      return binaryCodes[characterIndex];
     }
     return null;
   }
 
+  private int findCharacterIndex(char character) {
+    for (int i = 0; i < letters.length; i++) {
+      if (letters[i] == character) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+
   // create the tree for input file.
-  public void startHuffman(char[] characters, int[] weights) {
+  public void createHuffmanTree(char[] characters, int[] weights) {
+    initialize(characters, weights);
+    buildHuffmanTree();
+    storeBinaryCodes();
+  }
+
+  private void initialize(char[] characters, int[] weights) {
     this.letters = characters;
     this.frequency = weights;
     n = characters.length;
     lastNode = n;
     lastTree = n - 1;
     binaryCodes = new char[n][];
-    forest = new ZipUnzipStats(weights);
+    huffmanTrees = new ZipUnzipStats(weights);
     tree = new HuffmanCodec(n * 2 - 1);
-    // untill the forest is not empty
+  }
+
+  private void buildHuffmanTree() {
     while (lastTree >= 1) {
       huffman();
       lastTree--;
     }
-    code();
   }
+
+  private void storeBinaryCodes() {
+    storeBinCode();
+  }
+
 
   // store the binary codes
-  private void code() {
+  private void storeBinCode() {
     for (int i = 0; i < n; i++) {
-      char[] flipBinaryCodes = new char[n - 1];
-      int j = i, k = 0;
-      while (tree.nodes[j].parent != -1) {
-        if (tree.nodes[tree.nodes[j].parent].left == j) {
-          flipBinaryCodes[k] = '0';
-        } else {
-          flipBinaryCodes[k] = '1';
-        }
-        j = tree.nodes[j].parent;
-        k++;
-      }
-
-      binaryCodes[i] = new char[k];
-      j = 0;
-      while (k > 0) {
-        binaryCodes[i][j] = flipBinaryCodes[k - 1];
-        k--;
-        j++;
-      }
+      binaryCodes[i] = getBinaryCode(i);
     }
   }
+
+  private char[] getBinaryCode(int index) {
+    char[] flipBinaryCodes = new char[n - 1];
+    int j = index, k = 0;
+    while (tree.nodes[j].parent != -1) {
+      flipBinaryCodes[k] = (tree.nodes[tree.nodes[j].parent].left == j) ? '0' : '1';
+      j = tree.nodes[j].parent;
+      k++;
+    }
+
+    char[] binaryCode = new char[k];
+    j = 0;
+    while (k > 0) {
+      binaryCode[j] = flipBinaryCodes[k - 1];
+      k--;
+      j++;
+    }
+    return binaryCode;
+  }
+
 
   // file compression
-  public void fileCompression(char[] charContent, String fileName) {
-    try {
-      File file = new File(fileName);
-      try (DataOutputStream stream = new DataOutputStream(new FileOutputStream(file))) {
-        stream.writeInt(charContent.length);
-        stream.writeInt(letters.length);
-        for (int i = 0; i < letters.length; i++) {
-          stream.writeChar(letters[i]);
-          stream.writeInt(frequency[i]);
-        }
-        int bitCount = 0;
-        byte b = 0;
-        for (int i = 0; i < charContent.length; i++) {
-          char[] code = generateCode(charContent[i]);
-          for (int j = 0; j < code.length; j++) {
-            if (code[j] == '1') {
-              b |= 0x01;
-            }
-            if (bitCount == 7) {
-              bitCount = 0;
-              String binaryValue = Integer.toBinaryString(Byte.toUnsignedInt(b));
-              while (binaryValue.length() < 8) {
-                binaryValue = "0" + binaryValue;
-              }
-              stream.write(b);
-              b = 0;
-            } else {
-              b <<= 1;
-              bitCount++;
+  public void fileZipper(char[] charContent, String fileName) {
+    try (DataOutputStream stream = new DataOutputStream(new FileOutputStream(fileName))) {
+      // Write the length of the content and the number of distinct characters
+      stream.writeInt(charContent.length);
+      stream.writeInt(letters.length);
 
-            }
-          }
-
-        }
-        if (bitCount != 0) {
-          b <<= 7 - bitCount;
-          stream.write(b);
-        }
-        String binaryValue = Integer.toBinaryString(Byte.toUnsignedInt(b));
-        while (binaryValue.length() < 8) {
-          binaryValue = "0" + binaryValue;
-        }
-        stream.flush();
+      // Write the characters and their frequencies
+      for (int i = 0; i < letters.length; i++) {
+        stream.writeChar(letters[i]);
+        stream.writeInt(frequency[i]);
       }
 
-    } catch (Exception e) {
-      System.out.println(e);
+      // Compress the content and write it to the output stream
+      int bitCount = 0;
+      byte b = 0;
+      for (int i = 0; i < charContent.length; i++) {
+        char[] code = generateBinaryCode(charContent[i]);
+        for (int j = 0; j < code.length; j++) {
+          if (code[j] == '1') {
+            b |= 0x01;
+          }
+          if (bitCount == 7) {
+            stream.writeByte(b);
+            b = 0;
+            bitCount = 0;
+          } else {
+            b <<= 1;
+            bitCount++;
+          }
+        }
+      }
+      if (bitCount != 0) {
+        b <<= 7 - bitCount;
+        stream.writeByte(b);
+      }
+    } catch (IOException e) {
+      System.err.println("Error zipping file: " + e.getMessage());
     }
-
   }
 
+
   // read a compressed file and uncompress it to original
-  public void fileDecompression(String fileName) throws IllegalArgumentException {
+  public void fileUnzipper(String fileName) throws IllegalArgumentException {
     StringBuilder builder = new StringBuilder();
-    // string builder to save the huffman code
     int contentLength = 0;
     try {
-      if(!fileName.contains(".zip")) {
-        throw new IllegalArgumentException("First Compress the file before decompressing");
+      if (!fileName.endsWith(".zip")) {
+        throw new IllegalArgumentException("File must have .zip extension");
       }
-
       File file = new File(fileName);
       try (DataInputStream stream = new DataInputStream(new FileInputStream(file))) {
-        // retreive meta data
         contentLength = stream.readInt();
         int length = stream.readInt();
         char[] chars = new char[length];
@@ -184,89 +229,60 @@ public class ZipUnzipUtil {
           chars[i] = stream.readChar();
           weights[i] = stream.readInt();
         }
-        // finished retreiving data
-
-        // find huffman code from meta data
-        startHuffman(chars, weights);
-        // at this stage we have the huffman code
+        createHuffmanTree(chars, weights);
         while (stream.available() != 0) {
-
           byte b = stream.readByte();
-
-          // read byte
           int v = Byte.toUnsignedInt(b);
-          // its int unsiged value
           String binaryValue = Integer.toBinaryString(v);
-          while (binaryValue.length() <= 8) {
+          while (binaryValue.length() < 8) {
             binaryValue = "0" + binaryValue;
-            System.out.println(binaryValue.length());
           }
-          System.out.println("binaryValue length " + binaryValue.length());
           builder.append(binaryValue);
-
-          // obtain the binary codes as stream of characters
         }
-        throw new Exception();
       }
-
     } catch (Exception e) {
-      // System.out.println(builder.length());
-      System.out.println(e.getMessage());
-      if (builder.length() != 0) {
-
+      if (builder.length() > 0) {
         String content = builder.toString();
-
         StringBuilder uncompressed = new StringBuilder();
-        String[] codes = new String[this.binaryCodes.length];
+        String[] codes = new String[binaryCodes.length];
         for (int i = 0; i < codes.length; i++) {
-          codes[i] = String.valueOf(this.binaryCodes[i]);
+          codes[i] = String.valueOf(binaryCodes[i]);
         }
         int start = 0;
         while (start < content.length() && contentLength != uncompressed.length()) {
-          // stop loop when start exceeds the content length
-          // or when the content Length == to uncompressed length
           for (int i = 0; i < codes.length; i++) {
-            // check which huffman code the sequence starts with
-            // with a start offset
-            // we decode the code sequencialy code by code
             if (content.startsWith(codes[i], start)) {
               uncompressed.append(letters[i]);
-              // append the correponding character value of the code
               start += codes[i].length();
-              System.out.println("start length" + start);
-              //  add the code length to start
             }
           }
         }
-        try {
-          PrintWriter writer = new PrintWriter(new FileOutputStream(fileName.replace(".compressed", "")));
-          // write the uncompressed string to another file
-          // and remove the .compressed extension
+        try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
           writer.append(uncompressed.toString());
-          writer.flush();
-          // Text I/O
-        } catch (Exception ex) {
+        } catch (IOException ex) {
+          ex.printStackTrace();
         }
       } else {
-        System.out.println("builder empty");
+        System.out.println("File is empty");
       }
     }
   }
 
+
   // compression ratio statistics
-  public void compressionStatistics(char[] charContent) {
+  public void printZipStats(char[] charContent) {
     System.out.println("***************************************");
-    System.out.println("Compression Statistics:");
+    System.out.println("Zipping Statistics:");
     System.out.println("Original file size: [ " + (charContent.length) + " bytes ]");
     int bitCount = 0;
     for (int i = 0; i < charContent.length; i++) {
-      char[] code = generateCode(charContent[i]);
+      char[] code = generateBinaryCode(charContent[i]);
       for (int j = 0; j < code.length; j++) {
         bitCount++;
       }
     }
-    System.out.println("After compression, new compressed file size: [ " + (bitCount / 8) + " bytes ]");
-    System.out.println("Compression ratio: " + (int) ((bitCount) / (8.0 * charContent.length) * 100) + " %");
+    System.out.println("After zip, new zipped file size: [ " + (bitCount / 8) + " bytes ]");
+    System.out.println("Zip ratio: " + (int) ((bitCount) / (8.0 * charContent.length) * 100) + " %");
     System.out.println("***************************************");
   }
 

@@ -13,12 +13,12 @@ public class ZipUnzipStats {
   /**
    * Constructs a new CompressionStats object.
    *
-   * @param weights The weights of the characters in the original data.
+   * @param characterWeights The weights of the characters in the original data.
    */
-  public ZipUnzipStats(int[] weights) {
-    huffmanTreeNodes = new HuffmanNode[weights.length];
-    for (int i = 0; i < weights.length; i++) {
-      huffmanTreeNodes[i] = new HuffmanNode(i, weights[i]);
+  public ZipUnzipStats(int[] characterWeights) {
+    huffmanTreeNodes = new HuffmanNode[characterWeights.length];
+    for (int i = 0; i < characterWeights.length; i++) {
+      huffmanTreeNodes[i] = new HuffmanNode(i, characterWeights[i]);
     }
   }
 

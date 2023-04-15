@@ -7,17 +7,17 @@ public class HuffmanNode {
   int character;
 
   // The frequency or weight of the node
-  int frequency;
+  int freq;
 
   /**
 
    Constructor for creating a Huffman node with given character and frequency values.
-   @param holder the character value of the node
-   @param weight the frequency or weight of the node
+   @param character the character value of the node
+   @param freq the frequency or weight of the node
    */
-  public HuffmanNode(int holder, int weight) {
-    this.character = holder;
-    this.frequency = weight;
+  public HuffmanNode(int character, int freq) {
+    this.character = character;
+    this.freq = freq;
   }
 }
 
