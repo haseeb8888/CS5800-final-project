@@ -2,6 +2,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -212,7 +213,7 @@ public class ZipUnzipUtil {
 
 
   // read a compressed file and uncompress it to original
-  public void fileUnzipper(String fileName) throws IllegalArgumentException {
+  public void fileUnzipper(String fileName) {
     StringBuilder builder = new StringBuilder();
     int contentLength = 0;
     try {

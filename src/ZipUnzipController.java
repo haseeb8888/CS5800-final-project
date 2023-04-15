@@ -41,43 +41,43 @@ public class ZipUnzipController {
     int[] frequency;
     char[] characterContent;
     char[] letters;
-    try {
-      // Use a Scanner object to read the contents of the file and store in StringBuilder
-      try (Scanner in = new Scanner(file)) {
-        StringBuilder sb = new StringBuilder();
-        while (in.hasNext()) {
-          sb.append(in.nextLine());
-        }
-        characterContent = sb.toString().toCharArray();
-      }
 
-      // Create two ArrayLists to store unique characters and their frequencies
-      List<Character> letterList = new ArrayList<>();
-      List<Integer> frequencyList = new ArrayList<>();
-      int index;
-
-      // Iterate through the charContent array and store characters and frequencies in respective lists
-      for (int i = 0; i < characterContent.length; i++) {
-        if ((index = letterList.indexOf(characterContent[i])) >= 0) {
-          frequencyList.set(index, frequencyList.get(index) + 1);
-        } else {
-          letterList.add(characterContent[i]);
-          frequencyList.add(1);
-        }
+    // Use a Scanner object to read the contents of the file and store in StringBuilder
+    try (Scanner in = new Scanner(file)) {
+      StringBuilder sb = new StringBuilder();
+      while (in.hasNext()) {
+        sb.append(in.nextLine());
       }
-
-      // Convert ArrayLists to arrays for use in HuffmanUtility class
-      letters = new char[letterList.size()];
-      frequency = new int[frequencyList.size()];
-      for (int i = 0; i < letterList.size(); i++) {
-        letters[i] = letterList.get(i);
-        frequency[i] = frequencyList.get(i);
-      }
+      characterContent = sb.toString().toCharArray();
     } catch (FileNotFoundException ex) {
       // If file not found, print error message
       System.out.println("File not found");
       return;
     }
+
+    // Create two ArrayLists to store unique characters and their frequencies
+    List<Character> letterList = new ArrayList<>();
+    List<Integer> frequencyList = new ArrayList<>();
+    int index;
+
+    // Iterate through the charContent array and store characters and frequencies in respective lists
+    for (int i = 0; i < characterContent.length; i++) {
+      if ((index = letterList.indexOf(characterContent[i])) >= 0) {
+        frequencyList.set(index, frequencyList.get(index) + 1);
+      } else {
+        letterList.add(characterContent[i]);
+        frequencyList.add(1);
+      }
+    }
+
+    // Convert ArrayLists to arrays for use in HuffmanUtility class
+    letters = new char[letterList.size()];
+    frequency = new int[frequencyList.size()];
+    for (int i = 0; i < letterList.size(); i++) {
+      letters[i] = letterList.get(i);
+      frequency[i] = frequencyList.get(i);
+    }
+
 
     // Create an instance of HuffmanUtility class to perform compression and decompression
 
