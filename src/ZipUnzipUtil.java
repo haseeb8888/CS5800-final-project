@@ -57,7 +57,6 @@ public class ZipUnzipUtil {
   }
 
 
-
   // find two minimum nodes
   private void huffman() {
     int[] mindiff = new int[2];
@@ -245,38 +244,31 @@ public class ZipUnzipUtil {
       System.out.println("Unexpected error: " + e.getMessage());
       return;
     }
-      if (builder.length() > 0) {
-        String content = builder.toString();
-        StringBuilder uncompressed = new StringBuilder();
-        String[] codes = new String[binaryCodes.length];
-        for (int i = 0; i < codes.length; i++) {
-          codes[i] = String.valueOf(binaryCodes[i]);
-        }
-        int start = 0;
-        while (start < content.length() && contentLength != uncompressed.length()) {
-          for (int i = 0; i < codes.length; i++) {
-            codes[i] = String.valueOf(binaryCodes[i]);
-          }
-          int start = 0;
-          while (start < content.length() && contentLength != uncompressed.length()) {
-            for (int i = 0; i < codes.length; i++) {
-              if (content.startsWith(codes[i], start)) {
-                uncompressed.append(letters[i]);
-                start += codes[i].length();
-              }
-            }
-          }
-          try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
-            writer.append(uncompressed.toString());
-            System.out.println("done....");
-          } catch (IOException ex) {
-            ex.printStackTrace();
-          }
-        } else {
-          System.out.println("File is empty");
-        }
-
+    if (builder.length() > 0) {
+      String content = builder.toString();
+      StringBuilder uncompressed = new StringBuilder();
+      String[] codes = new String[binaryCodes.length];
+      for (int i = 0; i < codes.length; i++) {
+        codes[i] = String.valueOf(binaryCodes[i]);
       }
+      int start = 0;
+      while (start < content.length() && contentLength != uncompressed.length()) {
+        for (int i = 0; i < codes.length; i++) {
+          if (content.startsWith(codes[i], start)) {
+            uncompressed.append(letters[i]);
+            start += codes[i].length();
+          }
+        }
+      }
+      try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
+        writer.append(uncompressed.toString());
+        System.out.println("done....");
+      } catch (IOException ex) {
+        ex.printStackTrace();
+      }
+    } else {
+      System.out.println("File is empty");
+    }
   }
 
 
