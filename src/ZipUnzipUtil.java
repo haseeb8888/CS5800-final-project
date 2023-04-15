@@ -240,32 +240,35 @@ public class ZipUnzipUtil {
           }
           builder.append(binaryValue);
         }
-      }
-    } catch (Exception e) {
-      if (builder.length() > 0) {
-        String content = builder.toString();
-        StringBuilder uncompressed = new StringBuilder();
-        String[] codes = new String[binaryCodes.length];
-        for (int i = 0; i < codes.length; i++) {
-          codes[i] = String.valueOf(binaryCodes[i]);
-        }
-        int start = 0;
-        while (start < content.length() && contentLength != uncompressed.length()) {
+        if (builder.length() > 0) {
+          String content = builder.toString();
+          StringBuilder uncompressed = new StringBuilder();
+          String[] codes = new String[binaryCodes.length];
           for (int i = 0; i < codes.length; i++) {
-            if (content.startsWith(codes[i], start)) {
-              uncompressed.append(letters[i]);
-              start += codes[i].length();
+            codes[i] = String.valueOf(binaryCodes[i]);
+          }
+          int start = 0;
+          while (start < content.length() && contentLength != uncompressed.length()) {
+            for (int i = 0; i < codes.length; i++) {
+              if (content.startsWith(codes[i], start)) {
+                uncompressed.append(letters[i]);
+                start += codes[i].length();
+              }
             }
           }
+          try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
+            writer.append(uncompressed.toString());
+            System.out.println("done....");
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+        } else {
+          System.out.println("File is empty");
         }
-        try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
-          writer.append(uncompressed.toString());
-        } catch (IOException ex) {
-          ex.printStackTrace();
-        }
-      } else {
-        System.out.println("File is empty");
+
       }
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
     }
   }
 
