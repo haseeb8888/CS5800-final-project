@@ -255,21 +255,28 @@ public class ZipUnzipUtil {
         int start = 0;
         while (start < content.length() && contentLength != uncompressed.length()) {
           for (int i = 0; i < codes.length; i++) {
-            if (content.startsWith(codes[i], start)) {
-              uncompressed.append(letters[i]);
-              start += codes[i].length();
+            codes[i] = String.valueOf(binaryCodes[i]);
+          }
+          int start = 0;
+          while (start < content.length() && contentLength != uncompressed.length()) {
+            for (int i = 0; i < codes.length; i++) {
+              if (content.startsWith(codes[i], start)) {
+                uncompressed.append(letters[i]);
+                start += codes[i].length();
+              }
             }
           }
+          try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
+            writer.append(uncompressed.toString());
+            System.out.println("done....");
+          } catch (IOException ex) {
+            ex.printStackTrace();
+          }
+        } else {
+          System.out.println("File is empty");
         }
-        try (PrintWriter writer = new PrintWriter(fileName.replace(".zip", ""))) {
-          writer.append(uncompressed.toString());
-        } catch (IOException ex) {
-          ex.printStackTrace();
-        }
-      } else {
-        System.out.println("File is empty");
-      }
 
+      }
   }
 
 
