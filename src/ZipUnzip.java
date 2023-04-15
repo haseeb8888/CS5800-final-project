@@ -13,8 +13,8 @@ public class ZipUnzip {
    */
   public static void main(String[] args) {
 
-    ZipUnzipController.run();
-
+    ZipUnzipController controller = new ZipUnzipController();
+    controller.run();
   }
 
 }
